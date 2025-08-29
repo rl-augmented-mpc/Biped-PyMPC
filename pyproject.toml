@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biped_pympc"
+version = "0.1.0"
+description = "Batched Single Rigid Body MPC for bipedal locomotion"
+authors = [
+    { name = "Junnosuke Kamohara", email = "jkamohara3@gatech.edu" }
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "torch",
+    "casadi",
+    "numpy",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["biped_pympc*"]
+
+[tool.setuptools]
+package-data = { "biped_pympc" = ["cusadi/src/cusadi_functions/*.so", "cusadi/src/casadi_functions/*.casadi", "cusadi/src/casadi_functions/*.so"] }
+include-package-data = true
