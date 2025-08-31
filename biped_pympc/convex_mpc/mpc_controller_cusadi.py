@@ -152,17 +152,15 @@ class MPCControllerCusadi(BaseMPCController):
             ]
             
             # Measure solve time
-            torch.cuda.synchronize()
             solve_iter_start = time()
             self.qp_solver.evaluate(inputs_torch)
-            torch.cuda.synchronize()
             solve_iter_time = time() - solve_iter_start
             
             # Get outputs for all environments (already on GPU as PyTorch tensors)
-            x_new = self.qp_solver.outputs_sparse[0].reshape(self.num_envs, -1)  # (self.num_envs, nz)
-            s_new = self.qp_solver.outputs_sparse[1].reshape(self.num_envs, -1)  # (self.num_envs, num_ineq)
-            z_new = self.qp_solver.outputs_sparse[2].reshape(self.num_envs, -1)  # (self.num_envs, num_ineq)
-            y_new = self.qp_solver.outputs_sparse[3].reshape(self.num_envs, -1)  # (self.num_envs, num_eq)
+            x_new = self.qp_solver.getDenseOutput(0).reshape(self.num_envs, -1)  # (self.num_envs, nz)
+            s_new = self.qp_solver.getDenseOutput(1).reshape(self.num_envs, -1)  # (self.num_envs, num_ineq)
+            z_new = self.qp_solver.getDenseOutput(2).reshape(self.num_envs, -1)  # (self.num_envs, num_ineq)
+            y_new = self.qp_solver.getDenseOutput(3).reshape(self.num_envs, -1)  # (self.num_envs, num_eq)
             
             # Always use the solver output (trust it completely)
             x_current = x_new.clone().detach()

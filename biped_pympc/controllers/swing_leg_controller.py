@@ -278,6 +278,9 @@ class SwingLegController:
         self.cp1_coef = cp1
         self.cp2_coef = cp2
 
+    def reset(self, env_id:torch.Tensor)->None:
+        self.first_swing[env_id] = True
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torch

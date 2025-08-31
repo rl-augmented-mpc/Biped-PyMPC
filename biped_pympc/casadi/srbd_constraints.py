@@ -321,9 +321,10 @@ if __name__ == "__main__":
     
     # save the function
     function_path = os.path.join("biped_pympc", "casadi", "function", "srbd_qp_mat.casadi")
+    cusadi_function_path = os.path.join("biped_pympc", "cusadi", "src", "casadi_functions", "srbd_qp_mat.casadi")
     srbd_constraint.qp_mat_former.save(function_path)
-    print(f"saved function to {function_path}")
-    system(f"cp {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', 'srbd_qp_mat.casadi')}")
+    system(f"mv {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', 'srbd_qp_mat.casadi')}")
+    print(f"saved function to {cusadi_function_path}")
 
     # # code generation 
     # name = "qp_former"

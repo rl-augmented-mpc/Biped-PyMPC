@@ -26,6 +26,18 @@ class StateEStimatorData:
         self.root_velocity_b = torch.zeros((self.batch_size, 3), device=self.device)
         self.root_angular_velocity_b = torch.zeros((self.batch_size, 3), device=self.device)
 
+    def zero(self, env_id:torch.Tensor)->None:
+        self.root_position[env_id, :].zero_()
+        self.root_quat[env_id, :].zero_()
+        self.root_quat[env_id, 0] = 1.0
+        self.root_euler[env_id, :].zero_()
+        self.rotation_body[env_id, :, :] = torch.eye(3, device=self.device).unsqueeze(0).repeat(len(env_id), 1, 1)
+        self.root_velocity_w[env_id, :].zero_()
+        self.root_angular_velocity_w[env_id, :].zero_()
+        self.foot_position[env_id, :, :].zero_()
+        self.root_velocity_b[env_id, :].zero_()
+        self.root_angular_velocity_b[env_id, :].zero_()
+
 @dataclass
 class DesiredStateData:
     """
@@ -79,6 +91,21 @@ class LegControllerCommand:
         self.Pf = torch.zeros(self.batch_size, self.num_leg, 3, device=self.device)
         self.Pf_aug = torch.zeros(self.batch_size, self.num_leg, 3, device=self.device)
 
+    def zero(self, env_id:torch.Tensor)->None:
+        self.tau[env_id, :, :].zero_()
+        self.qDes[env_id, :, :].zero_()
+        self.qdDes[env_id, :, :].zero_()
+        self.pDes[env_id, :, :].zero_()
+        self.vDes[env_id, :, :].zero_()
+        self.feedfowardforce[env_id, :, :].zero_()
+        self.kpjoint[env_id, :, :].zero_()
+        self.kdjoint[env_id, :, :].zero_()
+        self.qDesDelta[env_id, :, :].zero_()
+        self.feedfowardforceDelta[env_id, :, :].zero_()
+        self.footplacementDelta[env_id, :, :].zero_()
+        self.Pf[env_id, :, :].zero_()
+        self.Pf_aug[env_id, :, :].zero_()
+
 @dataclass
 class LegControllerData:
     num_leg: int = 2
@@ -102,3 +129,16 @@ class LegControllerData:
         self.contact_bool = torch.ones(self.batch_size, self.num_leg, device=self.device)
         self.swing_phase = torch.zeros(self.batch_size, self.num_leg, device=self.device)
         self.swing_bool = torch.zeros(self.batch_size, self.num_leg, device=self.device)
+
+    def zero(self, env_id:torch.Tensor)->None:
+        self.tau[env_id, :, :].zero_() 
+        self.q[env_id, :, :].zero_()
+        self.qd[env_id, :, :].zero_()
+        self.J[env_id, :, :].zero_()
+        self.Jv[env_id, :, :].zero_()
+        self.p[env_id, :, :].zero_()
+        self.v[env_id, :, :].zero_()
+        self.contact_phase[env_id, :].zero_()
+        self.contact_bool[env_id, :].fill_(1.0)
+        self.swing_phase[env_id, :].zero_()
+        self.swing_bool[env_id, :].fill_(0.0)

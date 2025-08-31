@@ -27,9 +27,8 @@ class MPCControllerCasadi(BaseMPCController):
         self.qp_former = qp_former  # Use regular CasADi function, not CuSaDi
         
         # load function
-        # solver_filename = os.path.join(CASADI_FUNCTION_DIR, "mpc_multiple_iter_solver_240v_140eq_160ineq.casadi")
-        solver_filename = os.path.join(CASADI_FUNCTION_DIR, "mpc_multiple_iter_5_solver_240v_140eq_160ineq.casadi")
-        # solver_filename = os.path.join(CASADI_FUNCTION_DIR, "mpc_multiple_iter_20_solver_240v_140eq_160ineq.casadi")
+        # solver_filename = os.path.join(CASADI_FUNCTION_DIR, "mpc_multiple_iter_5_solver_240v_140eq_160ineq.casadi")
+        solver_filename = os.path.join(CASADI_FUNCTION_DIR, "mpc_multiple_iter_20_solver_240v_140eq_160ineq.casadi")
         self.qp_solver = casadi.Function.load(solver_filename)
         print(f"Solver loaded successfully. Number of inputs: {self.qp_solver.n_in()}, Number of outputs: {self.qp_solver.n_out()}")
     
@@ -56,9 +55,7 @@ class MPCControllerCasadi(BaseMPCController):
         # )
         # # end of pytorch qp former
         
-        # casadi qp former
-        qp_gen_start = time()
-        
+        ### 1. Create QP matrices using casadi ###
         # Pick first batch and send it back to CPU 
         # This is why casadi controller does not support batch processing
         x0 = self.x0[0, :12].cpu().numpy()
@@ -73,19 +70,22 @@ class MPCControllerCasadi(BaseMPCController):
         left_foot_pos = self.state_estimate_data.foot_position[0, 0, :].cpu().numpy()
         right_foot_pos = self.state_estimate_data.foot_position[0, 1, :].cpu().numpy()
         contact_table = self.contact_table[0, :, :].cpu().numpy()
-        Q = self.Q.cpu().numpy()
-        R = self.R.cpu().numpy()
-        dt = self.dt_mpc[0].item()
+        
+        dt_mpc = self.dt_mpc[0].item()
         m = self.mass
         friction_coef = self.mu
+        Q = self.Q.cpu().numpy()
+        R = self.R.cpu().numpy()
+        
         residual_lin_accel = self.residual_lin_accel[0].cpu().numpy()
         residual_ang_accel = self.residual_ang_accel[0].cpu().numpy()
         
         # Call CasADi function directly (same as test file)
         H, f, A, b, G, d = self.qp_former(
-            x0, x, u, x_ref, dt, m, friction_coef,
-            R_b, I_w, body_pos,
-            left_foot_pos, right_foot_pos, contact_table,
+            x0, x, u, x_ref, dt_mpc, m, friction_coef,
+            R_b, I_w, 
+            body_pos, left_foot_pos, right_foot_pos, 
+            contact_table,
             Q, R, 
             residual_lin_accel, residual_ang_accel
         )
@@ -128,7 +128,7 @@ class MPCControllerCasadi(BaseMPCController):
         )
         
         # External iteration loop
-        MAX_ITER = 4
+        MAX_ITER = 1
         for iter_num in range(MAX_ITER):
             # === TRUST THE SINGLE ITERATION SOLVER (EXACT COPY OF MULTIPLE ITERATION LOGIC) ===
             # Call single iteration solver
@@ -153,54 +153,6 @@ class MPCControllerCasadi(BaseMPCController):
         # Get the final solution
         x_opt_np = x_current
         sol = torch.from_numpy(x_opt_np).to(self.device).to(torch.float32)
-
-        DEBUG = False
-        if DEBUG:
-            solve_time = time() - solve_start
-            print(f"QP solver total time: {1000*solve_time:.4f} ms")
-            
-            # Print total time with correct calculation
-            qp_gen_time = solve_start - qp_gen_start  # Just matrix generation
-            total_time = time() - qp_gen_start       # Total time from start to end
-            print(f"Total QP time (generation + solve): {1000*total_time:.4f} ms")
-            
-            # Print timing breakdown
-            print(f"Timing breakdown:")
-            print(f"  - Matrix generation: {1000*qp_gen_time:.4f} ms ({100*qp_gen_time/total_time:.1f}%)")
-            print(f"  - QP solving: {1000*solve_time:.4f} ms ({100*solve_time/total_time:.1f}%)")
-            
-            # Convert CasADi matrices to PyTorch tensors for cost calculation (same as mpc_controller_qpth)
-            H_tensor = torch.from_numpy(H.full()).float().unsqueeze(0).to(self.device)
-            f_tensor = torch.from_numpy(f.full()).squeeze(-1).float().unsqueeze(0).to(self.device)
-            
-            # Debug: Check tensor shapes
-            print(f"Debug - H_tensor shape: {H_tensor.shape}")
-            print(f"Debug - f_tensor shape: {f_tensor.shape}")
-            print(f"Debug - sol shape before reshape: {sol.shape}")
-            
-            # Use quadratic cost calculation (adapted for 1D solution tensor)
-            sol_reshaped = sol.unsqueeze(0).float()  # Add batch dimension: (1, nz) and convert to float32
-            print(f"Debug - sol_reshaped shape: {sol_reshaped.shape}")
-            
-            # Ensure shapes are compatible
-            if sol_reshaped.shape[1] != H_tensor.shape[2]:
-                print(f"Warning: Shape mismatch! sol_reshaped: {sol_reshaped.shape}, H_tensor: {H_tensor.shape}")
-                # Try to fix the shape
-                if sol_reshaped.shape[1] > H_tensor.shape[2]:
-                    sol_reshaped = sol_reshaped[:, :H_tensor.shape[2]]
-                    print(f"Truncated sol_reshaped to: {sol_reshaped.shape}")
-                else:
-                    # Pad with zeros
-                    padding = torch.zeros(1, H_tensor.shape[2] - sol_reshaped.shape[1], device=self.device)
-                    sol_reshaped = torch.cat([sol_reshaped, padding], dim=1)
-                    print(f"Padded sol_reshaped to: {sol_reshaped.shape}")
-        
-        # For quadratic term: sol^T * H * sol
-        # quad_term = (0.5 * sol_reshaped @ H_tensor.squeeze(0) @ sol_reshaped.transpose(0, 1)).squeeze()
-        # # For linear term: f^T * sol  
-        # linear_term = (f_tensor.squeeze(0) @ sol_reshaped.transpose(0, 1)).squeeze()
-        # cost = quad_term + linear_term
-        # # u_control = sol[:, 13*self.horizon_length:13*self.horizon_length+12] # pytorch qp former
 
         cost = torch.tensor([0.0], dtype=torch.float32, device=self.device)
         u_control = sol[12*self.horizon_length:12*self.horizon_length+12] # casadi qp former - 1D tensor

@@ -233,8 +233,8 @@ class BaseMPCController(ABC):
         self.x_ref[:, :, 2] = self.yaw_desired.unsqueeze(1) + self.desired_state_data.desired_angular_velocity_b[:, 2].unsqueeze(1) * time_bins
         
         # mask
-        # if stationary_mask.any():
-        #     self.x_ref[stationary_mask, :, 2] = self.yaw_desired[stationary_mask, None] + self.desired_state_data.desired_angular_velocity_b[stationary_mask, 2].unsqueeze(1) * time_bins
+        if stationary_mask.any():
+            self.x_ref[stationary_mask, :, 2] = self.yaw_desired[stationary_mask, None] + self.desired_state_data.desired_angular_velocity_b[stationary_mask, 2].unsqueeze(1) * time_bins[stationary_mask]
         
         # x, y, z
         desired_lin_velocity_w = (self.state_estimate_data.rotation_body @ self.desired_state_data.desired_velocity_b.unsqueeze(-1)).squeeze(-1)
@@ -242,9 +242,9 @@ class BaseMPCController(ABC):
         self.x_ref[:, :, 4] = self.state_estimate_data.root_position[:, 1].unsqueeze(1) + desired_lin_velocity_w[:, 1].unsqueeze(1) * time_bins
         self.x_ref[:, :, 5] = self.desired_state_data.desired_height.unsqueeze(1).repeat(1, self.horizon_length)
         # mask
-        # if stationary_mask.any():
-        #     self.x_ref[stationary_mask, :, 3] = self.world_position_desired[stationary_mask, 0].unsqueeze(1) + desired_lin_velocity_w[stationary_mask, 0].unsqueeze(1) * time_bins
-        #     self.x_ref[stationary_mask, :, 4] = self.world_position_desired[stationary_mask, 1].unsqueeze(1) + desired_lin_velocity_w[stationary_mask, 1].unsqueeze(1) * time_bins
+        if stationary_mask.any():
+            self.x_ref[stationary_mask, :, 3] = self.world_position_desired[stationary_mask, 0].unsqueeze(1) + desired_lin_velocity_w[stationary_mask, 0].unsqueeze(1) * time_bins[stationary_mask]
+            self.x_ref[stationary_mask, :, 4] = self.world_position_desired[stationary_mask, 1].unsqueeze(1) + desired_lin_velocity_w[stationary_mask, 1].unsqueeze(1) * time_bins[stationary_mask]
         
         # wx, wy, wz
         self.x_ref[:, :, 6] = 0.0

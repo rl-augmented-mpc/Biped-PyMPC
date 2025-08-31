@@ -43,6 +43,9 @@ class StateEstimator:
         rot = self.data.rotation_body.unsqueeze(1).repeat(1, self.data.num_legs, 1, 1).reshape(-1, 3, 3)
         self.data.foot_position = torch.bmm(rot, foot_position_b.reshape(-1, 3, 1)).squeeze(-1).reshape(-1, self.num_legs, 3) \
             + self.data.root_position.unsqueeze(1)
+        
+    def reset(self, env_id:torch.Tensor)->None:
+        self.data.zero(env_id)
 
 
 if __name__ == "__main__":

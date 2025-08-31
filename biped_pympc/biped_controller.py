@@ -72,7 +72,6 @@ class BipedController:
         self.torque_limit = torch.tensor(self.leg_controller.biped.pd_conf.torque_limit, device=device)
         
         # buffer
-        self.control_counter = torch.zeros(num_envs, device=device)
         self.swing_phase = torch.zeros(num_envs, num_legs, device=device)
         self.contact_phase = torch.zeros(num_envs, num_legs, device=device)
         self.mpc_cost = torch.zeros(num_envs, device=device)
@@ -81,9 +80,11 @@ class BipedController:
     reset.
     """
     def reset(self, env_ids:torch.Tensor)->None:
-        self.control_counter[env_ids] = 0
         self.gait_generator.reset(env_ids)
         self.mpc_controller.reset(env_ids)
+        self.state_estimator.reset(env_ids)
+        self.leg_controller.reset(env_ids)
+        self.swing_leg_controller.reset(env_ids)
     
     """
     state estimator.
@@ -127,7 +128,6 @@ class BipedController:
         
         # update phase and counter
         self.gait_generator.update_phase()
-        self.control_counter += 1
 
         t1 = time()
         if self.print_solve_time:

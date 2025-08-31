@@ -1,0 +1,20 @@
+# no build
+build
+UNKNOWN.egg-info
+biped_pympc.egg-info
+
+# no pycache
+*.pyc
+
+# no data
+# *.png
+# *.jpg
+*.json
+*.txt
+*.log
+*.pdf
+
+# no casadi 
+*.casadi
+# no so 
+*.so

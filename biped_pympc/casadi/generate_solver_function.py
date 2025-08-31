@@ -7,7 +7,7 @@ from biped_pympc.casadi.sparse_pdipm_solver import sparse_pdipm_single_iteration
 if __name__ == "__main__":
 
     # 1. Load CasADi function
-    casadi_fn_path = os.path.join("biped_pympc", "casadi", "function", "srbd_qp_mat.casadi")
+    casadi_fn_path = os.path.join("biped_pympc", "cusadi", "src", "casadi_functions", "srbd_qp_mat.casadi")
     qp_former = ca.Function.load(casadi_fn_path)
 
     # 2. Realistic input data (from srbd_constraints.py)
@@ -99,11 +99,11 @@ if __name__ == "__main__":
     # function_path = os.path.join("biped_pympc", "casadi", "function", f'mpc_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')
     # solver.save(function_path)
     # print(f"Saved CasADi function to '{function_path}'")
-    # system(f"cp {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', f'mpc_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')}")
+    # system(f"mv {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', f'mpc_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')}")
 
 
-    # Create the single-iteration solver function using sparsity patterns
-    MAX_ITER = 5
+    # Create the multiple-iteration solver function using sparsity patterns
+    MAX_ITER = 20
     solver = sparse_pdipm_multiple_iterations(
         nz, num_eq, num_ineq,
         H_row_ind, H_col_point,
@@ -117,9 +117,10 @@ if __name__ == "__main__":
 
     # Save the CasADi function with a descriptive name
     function_path = os.path.join("biped_pympc", "casadi", "function", f'mpc_multiple_iter_{MAX_ITER}_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')
+    cusadi_function_path = os.path.join("biped_pympc", "cusadi", "src", "casadi_functions", f'mpc_multiple_iter_{MAX_ITER}_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')
     solver.save(function_path)
-    print(f"Saved CasADi function to '{function_path}'")
-    system(f"cp {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', f'mpc_multiple_iter_{MAX_ITER}_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')}")
+    system(f"mv {function_path} {os.path.join('biped_pympc/cusadi/src/casadi_functions', f'mpc_multiple_iter_{MAX_ITER}_solver_{nz}v_{num_eq}eq_{num_ineq}ineq.casadi')}")
+    print(f"Saved CasADi function to '{cusadi_function_path}'")
 
 
 

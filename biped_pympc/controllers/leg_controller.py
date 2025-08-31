@@ -114,6 +114,10 @@ class LegController:
         self.command.kpjoint[self.data.contact_bool[:, 0].nonzero(), 0, :] *= 0.0
         self.command.kpjoint[self.data.contact_bool[:, 1].nonzero(), 1, :] *= 0.0
 
+    def reset(self, env_id:torch.Tensor)->None:
+        self.data.zero(env_id)
+        self.command.zero(env_id)
+
 if __name__ == "__main__":
     num_envs = 4096
     num_leg = 2
