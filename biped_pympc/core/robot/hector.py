@@ -6,12 +6,12 @@ from biped_pympc.utils.math_utils import rot_x, rot_z
 @dataclass
 class DofCfg:
     torque_limit: list[float] = field(default_factory=lambda: [33.5, 33.5, 33.5, 67.0, 33.5, 33.5, 33.5, 33.5, 67.0, 33.5])
-    # kp: list[float] = field(default_factory=lambda: [20.0, 20.0, 20.0, 20.0, 15.0])
-    # kd: list[float] = field(default_factory=lambda: [0.45, 0.45, 0.45, 0.45, 0.6])
-    kp: list[float] = field(default_factory=lambda: [100.0, 100.0, 150.0, 150.0, 50.0])
+    # from cpp code
+    kp: list[float] = field(default_factory=lambda: [40.0, 40.0, 70.0, 70.0, 40.0])
     kd: list[float] = field(default_factory=lambda: [1.0, 1.0, 0.7, 0.7, 0.7])
-    # kp: list[float] = field(default_factory=lambda: [100.0, 100.0, 100.0, 100.0, 100.0])
-    # kd: list[float] = field(default_factory=lambda: [1.0, 1.0, 1.0, 1.0, 1.0])
+    # # made up
+    # kp: list[float] = field(default_factory=lambda: [100.0, 100.0, 150.0, 150.0, 50.0])
+    # kd: list[float] = field(default_factory=lambda: [1.0, 1.0, 0.7, 0.7, 0.7])
 
 class HECTOR(Biped):
     """Constants and functions related to the robot kinematics and dynamics."""

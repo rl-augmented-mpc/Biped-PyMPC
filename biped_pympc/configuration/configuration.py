@@ -31,7 +31,7 @@ class MPCConf:
     """
     
     dt: float = 0.001
-    dt_mpc: float = 40 * 0.001
+    dt_mpc: float = 0.025
     
     horizon_length: int = 10
     decimation: int = 10 # how many control steps to skip between mpc updates
@@ -48,6 +48,6 @@ class MPCConf:
         device=DEVICE, dtype=torch.float32)
     
     print_solve_time: bool = False
-    solver: Literal["osqp", "qpth", "casadi-ipm", "qpswift"] = "osqp"
+    solver: Literal["osqp", "qpth", "casadi", "cusadi"] = "osqp"
 
     robot: Literal["HECTOR", "T1"] = "HECTOR"

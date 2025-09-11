@@ -82,7 +82,7 @@ class MPCControllerOSQP(BaseMPCController):
         # setup qp
         t0 = time()
         if self.init_qp:
-            self.qp_solver.setup(H_sp, f_sp, A_sp, lb_sp, ub_sp, rho=0.5, eps_abs=1e-5, verbose=False)
+            self.qp_solver.setup(H_sp, f_sp, A_sp, lb_sp, ub_sp, rho=0.5, eps_abs=1e-12, verbose=False)
             self.init_qp = False
         else:
             self.qp_solver.update(Px=H_sp.data, Ax=A_sp.data, q=f_sp, l=lb_sp, u=ub_sp)

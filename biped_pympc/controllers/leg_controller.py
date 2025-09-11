@@ -105,6 +105,10 @@ class LegController:
         
         swing_qdDes_left = torch.bmm(self.data.Jv[:, 0, :, :].transpose(1, 2), self.command.vDes[:, 0, :].unsqueeze(-1)).squeeze(-1)
         swing_qdDes_right = torch.bmm(self.data.Jv[:, 1, :, :].transpose(1, 2), self.command.vDes[:, 1, :].unsqueeze(-1)).squeeze(-1)
+        swing_qdDes_left[:, 0] = 0.0 #  yaw qd is zero
+        swing_qdDes_left[:, -1] = 0.0 # ankle qd is zero
+        swing_qdDes_right[:, 0] = 0.0 # yaw qd is zero
+        swing_qdDes_right[:, -1] = 0.0 # ankle qd is zero
         stance_qdDes_left = torch.zeros_like(swing_qdDes_left)
         stance_qdDes_right = torch.zeros_like(swing_qdDes_right)
         

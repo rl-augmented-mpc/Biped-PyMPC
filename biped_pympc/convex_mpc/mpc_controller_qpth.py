@@ -20,10 +20,14 @@ class MPCControllerQPTh(BaseMPCController):
     
     def init_solver(self):
         # qp solver
-        self.qp_solver = QPFunction(verbose=-1,
-                  check_Q_spd=False,
-                  eps=1e-3,
-                  solver=QPSolvers.PDIPM_BATCHED)
+        self.qp_solver = QPFunction(
+                verbose=-1,
+                check_Q_spd=False,
+                # eps=1e-12,
+                maxIter=100,
+                #   solver=QPSolvers.PDIPM_BATCHED, 
+                solver=QPSolvers.CVXPY,
+                )
         
         qp_former_filename = os.path.join(CASADI_FUNCTION_DIR, "srbd_qp_mat.casadi")
         qp_former = casadi.Function.load(qp_former_filename)
@@ -118,14 +122,25 @@ class MPCControllerQPTh(BaseMPCController):
         
         # solve qp 
         # t0 = time()
-        sol = self.qp_solver(
-            H.double(), 
-            f.double(), 
-            G.double(), 
-            d.double(), 
-            A.double(), 
-            b.double()
-            ).float()
+        cpu = False
+        if cpu:
+            sol = self.qp_solver(
+                H.double().cpu(), 
+                f.double().cpu(), 
+                G.double().cpu(), 
+                d.double().cpu(),  # Added .cpu() here
+                A.double().cpu(),  # Added .cpu() here
+                b.double().cpu()   # Added .cpu() here
+                ).float().to(self.device)
+        else:
+            sol = self.qp_solver(
+                H.double(), 
+                f.double(), 
+                G.double(), 
+                d.double(), 
+                A.double(), 
+                b.double()
+                ).float()
         # print(f"qp solver time: {1000*(time() - t0):.4f} ms")
         cost = (0.5 * sol[:, :, None].transpose(1, 2) @ H.float() @ sol[:, :, None] + f[:, :, None].transpose(1, 2).float() @ sol[:, :, None]).squeeze(-1)
         u_control = sol[:, nx*self.horizon_length:nx*self.horizon_length+nu]  # (num_envs, 12)
