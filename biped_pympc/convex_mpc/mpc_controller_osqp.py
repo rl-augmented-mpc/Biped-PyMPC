@@ -93,7 +93,8 @@ class MPCControllerOSQP(BaseMPCController):
         res = self.qp_solver.solve()
         sol = torch.from_numpy(res.x).float().unsqueeze(0).to(self.device)
         cost = torch.tensor([res.info.obj_val], dtype=torch.float32, device=self.device)
-        # print(f"qp solver time: {1000*(time() - t0):.4f} ms")
+        if self.cfg.print_solve_time:
+            print(f"qp solver time: {1000*(time() - t0):.4f} ms")
         u_control = sol[:, 12*self.horizon_length:12*self.horizon_length+12] # casadi qp former
         
         # solutions are in global coordinate
@@ -111,6 +112,5 @@ class MPCControllerOSQP(BaseMPCController):
         right_grf_body = (self.state_estimate_data.rotation_body.transpose(1, 2) @ right_grf.float().unsqueeze(-1)).squeeze(-1) # (batch_size, 3)
         right_grm_body = (self.state_estimate_data.rotation_body.transpose(1, 2) @ right_grm.float().unsqueeze(-1)).squeeze(-1) # (batch_size, 3)
         foot_wrench = torch.cat([-left_grf_body, -left_grm_body, -right_grf_body, -right_grm_body], dim=1).reshape(-1, 2, 6) # (batch_size, 2, 6)
-        # print(f"solution process time: {1000*(time() - t0):.4f} ms")
 
         return foot_wrench, cost

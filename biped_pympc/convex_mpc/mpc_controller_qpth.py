@@ -5,10 +5,10 @@ from dataclasses import dataclass
 import casadi
 import torch
 from qpth.qp import QPFunction, QPSolvers
-
 from biped_pympc.configuration.configuration import MPCConf
 from biped_pympc.cusadi import CASADI_FUNCTION_DIR, CusadiFunction
 from biped_pympc.convex_mpc.base_controller import BaseMPCController
+import gc
 
 class MPCControllerQPTh(BaseMPCController):
     def __init__(self, num_envs:int, device:Union[torch.device, str], num_legs:int, cfg:MPCConf):
@@ -20,13 +20,13 @@ class MPCControllerQPTh(BaseMPCController):
     
     def init_solver(self):
         # qp solver
+        torch.cuda.empty_cache()
+        gc.collect()
         self.qp_solver = QPFunction(
                 verbose=-1,
                 check_Q_spd=False,
-                # eps=1e-12,
-                maxIter=100,
-                #   solver=QPSolvers.PDIPM_BATCHED, 
-                solver=QPSolvers.CVXPY,
+                eps=1e-3,
+                solver=QPSolvers.PDIPM_BATCHED,
                 )
         
         qp_former_filename = os.path.join(CASADI_FUNCTION_DIR, "srbd_qp_mat.casadi")
@@ -43,8 +43,8 @@ class MPCControllerQPTh(BaseMPCController):
         self.compute_horizon_state()
         self.set_initial_state()
         self.compute_reference_trajectory()
-        
-        ## DEPRECATED!!!
+
+        ## Manual matrices creation: DEPRECATED!!!
         # # form qp matrices manually in pytorch
         # H, f, A_block, b_block, G_block, d_block = create_srbd_qp_matrices(
         #     self.R_body.view(-1, self.horizon_length*3*3),
@@ -121,27 +121,18 @@ class MPCControllerQPTh(BaseMPCController):
         d = self.qp_former.getDenseOutput(5).squeeze(-1)  # (B, num_ineq)
         
         # solve qp 
-        # t0 = time()
-        cpu = False
-        if cpu:
-            sol = self.qp_solver(
-                H.double().cpu(), 
-                f.double().cpu(), 
-                G.double().cpu(), 
-                d.double().cpu(),  # Added .cpu() here
-                A.double().cpu(),  # Added .cpu() here
-                b.double().cpu()   # Added .cpu() here
-                ).float().to(self.device)
-        else:
-            sol = self.qp_solver(
+        torch.cuda.empty_cache()
+        t0 = time()
+        sol = self.qp_solver(
                 H.double(), 
                 f.double(), 
                 G.double(), 
                 d.double(), 
                 A.double(), 
                 b.double()
-                ).float()
-        # print(f"qp solver time: {1000*(time() - t0):.4f} ms")
+            ).float()
+        if self.cfg.print_solve_time:
+            print(f"qp solver time: {1000*(time() - t0):.4f} ms")
         cost = (0.5 * sol[:, :, None].transpose(1, 2) @ H.float() @ sol[:, :, None] + f[:, :, None].transpose(1, 2).float() @ sol[:, :, None]).squeeze(-1)
         u_control = sol[:, nx*self.horizon_length:nx*self.horizon_length+nu]  # (num_envs, 12)
         

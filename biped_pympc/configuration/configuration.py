@@ -7,14 +7,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class ControllerConf:
     """
     Configuration parameters for the biped controller.
-    ssp_durations: float = duration of single support phase in seconds.
-    dsp_durations: float = duration of double support phase in seconds.
+
+    ssp_durations: int = duration of single support phase in mpc steps.
+    dsp_durations: int = duration of double support phase in mpc steps.
     swing_height: float = height of the swing leg in meters.
-    torque_limit: list[float] = list of torque limits for each joint in Nm.
+    swing_reference_frame: Literal["world", "base"] = reference frame for swing leg trajectory.
     """
     
-    ssp_durations: float = 0.2  # seconds
-    dsp_durations: float = 0.0 # seconds
+    ssp_durations: int = 5
+    dsp_durations: int = 0
     swing_height: float = 0.1  # meters
     swing_reference_frame: Literal["world", "base"] = "base"
 
@@ -23,11 +24,14 @@ class MPCConf:
     """ 
     MPC configuration parameters.
     dt: float = control time step in seconds.
-    iteration_between_mpc: int = number of iterations between MPC updates.
+    dt_mpc: float = MPC time step in seconds.
     horizon_length: int = length of the prediction horizon in steps.
     decimation: int = number of control steps to skip between MPC updates.
     Q: torch.Tensor = state tracking cost matrix.
     R: torch.Tensor = control tracking cost matrix.
+    print_solve_time: bool = whether to print the solver time.
+    solver: Literal["osqp", "qpth", "casadi", "cusadi"] = choice of QP solver.
+    robot: Literal["HECTOR", "T1"] = robot model to use.
     """
     
     dt: float = 0.001
@@ -47,7 +51,20 @@ class MPCConf:
         # [1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-5, 1e-4, 1e-5, 1e-4, 1e-4, 1e-5, 1e-4], # T1
         device=DEVICE, dtype=torch.float32)
     
-    print_solve_time: bool = False
-    solver: Literal["osqp", "qpth", "casadi", "cusadi"] = "osqp"
+    print_solve_time: bool = True
+    solver: Literal["osqp", "qpth", "casadi", "cusadi"] = "cusadi"
 
     robot: Literal["HECTOR", "T1"] = "HECTOR"
+
+    def __post_init__(self):
+        print('[INFO] MPC Configuration:')
+        print('+--------------------------------+')
+        print(f'  dt: {self.dt}')
+        print(f'  dt_mpc: {self.dt_mpc}')
+        print(f'  horizon_length: {self.horizon_length}')
+        print(f'  decimation: {self.decimation}')
+        print(f'  Q: {self.Q}')
+        print(f'  R: {self.R}')
+        print(f'  solver: {self.solver}')
+        print(f'  robot: {self.robot}')
+        print('+--------------------------------+')

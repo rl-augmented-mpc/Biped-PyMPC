@@ -21,7 +21,7 @@ class BipedController:
         self.horizon_length = mpc_cfg.horizon_length
         self.mpc_decimation = mpc_cfg.decimation
         self.print_solve_time = mpc_cfg.print_solve_time
-        
+
         # # === Standing gait ======
         if gait_id == 1:
             dsp_durations = torch.tensor([5, 5], device=device).unsqueeze(0).repeat(num_envs, 1)
