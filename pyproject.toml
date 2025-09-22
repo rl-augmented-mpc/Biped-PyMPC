@@ -7,7 +7,7 @@ name = "biped_pympc"
 version = "0.1.0"
 description = "Batched Single Rigid Body MPC for bipedal locomotion"
 authors = [
-    { name = "Junnosuke Kamohara", email = "jkamohara3@gatech.edu" }
+    { name = "anonymous authors", email = "" }
 ]
 license = {text = "MIT"}
 readme = "README.md"
@@ -16,6 +16,9 @@ dependencies = [
     "torch",
     "casadi",
     "numpy",
+    "qpth",
+    "osqp",
+    "scipy",
 ]
 
 [tool.setuptools.packages.find]

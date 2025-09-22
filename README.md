@@ -1,25 +1,23 @@
 # Bipedal-PyMPC
 This project is a batched MPC controller targetted for learning and model-based hybrid control research. 
 
-<img src="media/batched_mpc.png"></img>
+<img src="media/parallel_mpc.png"></img>
 
 ## Installation 
-We offer easy pip install. 
 ```bash
-pip install .
+pip install -e .
 ```
 
 ### Configure CusADi function
 To run CusADi, you need to compile your casadi code as .so file. \
 We assume your base casadi function file is saved in `biped_pympc/cusadi/src/casadi_functions`. 
 ```bash
-# pip install -e biped_pympc/cusadi
 # compile casadi as cusadi .so file
 python3 cusadi/run_codegen.py --fn {cusadi_function}
 cp cusadi/build/{cusadi_function}.so cusadi/src/cusadi_functions/{cusadi_function}.so
 ```
 
-## Simulation example 
+<!-- ## Simulation example 
 To debug codebase, you may use Genesis or IsaacLab. \
 As multi-platform is supported, we use genesis in this example. 
 
@@ -35,7 +33,7 @@ python3 run_linux.py # ubuntu
 python3 run.py # mac os
 ```
 You should see GUI like the following. 
-<img src="media/gensis_hector.png"></image>
+<img src="media/gensis_hector.png"></image> -->
 
 ## WIP List
 
@@ -54,8 +52,7 @@ You should see GUI like the following.
 - [x] Check code in Isaac
 
 ### Interface and functionalities
-- [ ] Add IsaacLab example
-- [ ] Align swing leg trajectory with C++ implementation 
-- [ ] Add RL-MPC interface
-- [ ] Add CusADi solver
+- [x] Add IsaacLab example
+- [x] Add RL-MPC interface
+- [x] Add CusADi solver
 - [ ] Create ROS2 wrapper
