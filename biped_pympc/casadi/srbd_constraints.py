@@ -233,12 +233,6 @@ if __name__ == "__main__":
     from os import system
     import time
 
-    # np.set_printoptions(threshold=sys.maxsize)c
-    np.set_printoptions(
-    linewidth=200,  # set wide enough so rows don't wrap
-    suppress=True,  # avoid scientific notation
-    precision=3     # limit decimal digits
-    )
     num_horizon = 10
     srbd_constraint = SRBD_Constraints(num_horizon)
     

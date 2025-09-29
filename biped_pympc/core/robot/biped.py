@@ -13,11 +13,7 @@ class Biped:
     def __init__(self, num_envs:int, device:torch.device):
         self.num_envs = num_envs
         self.device = device
-        
-        # left leg hip yaw configuration
-        self.hip_yaw = torch.tensor([-0.00, 0.047, -0.126], device=self.device) # hip yaw joint position wrt torso frame
-        self.hip_roll = torch.tensor([0.0465, 0.015, -0.0705], device=self.device) # hip roll joint position wrt hip yaw frame
-        
+
         # pd conf
         self.pd_conf = DofCfg()
         
@@ -25,11 +21,9 @@ class Biped:
         self.initialize_kinematics()
     
     def define_dynamics_parameter(self):
-        self.mass = 13.5
-        self.I_body = torch.tensor([[0.5413, 0.0, 0.0],
-                                    [0.0, 0.5200, 0.0],
-                                    [0.0, 0.0, 0.0691]], device=self.device)
-        self.mu = 1.0
+        self.mass = None
+        self.I_body = None
+        self.mu = None
         
     @property
     def num_dof(self):

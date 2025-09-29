@@ -1,5 +1,6 @@
 # Bipedal-PyMPC
-This project is a batched MPC controller targetted for learning and model-based hybrid control research. 
+This project presents a **batched MPC controller** designed for learning and model-based hybrid combined approach.
+We open-source a batched QP solver implemented in **CusADi**, along with kinematics and dynamics code written purely in PyTorch.
 
 <img src="media/parallel_mpc.png"></img>
 
@@ -8,13 +9,29 @@ This project is a batched MPC controller targetted for learning and model-based 
 pip install -e .
 ```
 
-### Configure CusADi function
+## Code generation 
+
+### Generate CasADi function 
+```bash 
+# generate functions that form QP matrices and solve this QP problem.
+python3 -m biped_pympc.casadi.srbd_constraints
+python3 -m biped_pympc.casadi.generate_solver_function
+```
+This generate casadi function file ready to be compiled as cuda kernel. 
+
+### Generate CusADi function
 To run CusADi, you need to compile your casadi code as .so file. \
-We assume your base casadi function file is saved in `biped_pympc/cusadi/src/casadi_functions`. 
+We assume your base casadi function files are saved in `biped_pympc/cusadi/src/casadi_functions`. 
 ```bash
 # compile casadi as cusadi .so file
-python3 cusadi/run_codegen.py --fn {cusadi_function}
-cp cusadi/build/{cusadi_function}.so cusadi/src/cusadi_functions/{cusadi_function}.so
+
+# compile dynamics code
+python3 cusadi/run_codegen.py --fn qp_former
+cp cusadi/build/qp_former.so cusadi/src/cusadi_functions/qp_former.so
+
+# compile solver code
+python3 cusadi/run_codegen.py --fn sparse_pdipm_multiple_iterations
+cp cusadi/build/sparse_pdipm_multiple_iterations.so cusadi/src/cusadi_functions/sparse_pdipm_multiple_iterations.so
 ```
 
 <!-- ## Simulation example 
@@ -56,3 +73,16 @@ You should see GUI like the following.
 - [x] Add RL-MPC interface
 - [x] Add CusADi solver
 - [ ] Create ROS2 wrapper
+
+### Update 
+- [ ] Create QP solver in warp sparse class. 
+
+## Limitation
+The current codebase suffers from long compilation times because CusADi compiles the generated SX instructions one by one.
+This forced us to limit full Newton iterations to a maximum of 5 within a single QP solve.
+Even so, compiling 5 Newton iterations takes around 3 hours, which is a significant bottleneck.
+Future work involves replacing the CusADi-based solver with one written purely in cuSparse, CuDSS or Warp.
+
+
+## Acknowledgement 
+We thank Se Hwan Jeon for his support in setting up CusADi and open-sourcing the code. 

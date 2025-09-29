@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
 
     # Create the multiple-iteration solver function using sparsity patterns
-    MAX_ITER = 20
+    MAX_ITER = 5
     solver = sparse_pdipm_multiple_iterations(
         nz, num_eq, num_ineq,
         H_row_ind, H_col_point,
