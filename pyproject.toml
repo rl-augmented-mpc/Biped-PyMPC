@@ -19,6 +19,7 @@ dependencies = [
     "qpth",
     "osqp",
     "scipy",
+    "gdown",
 ]
 
 [tool.setuptools.packages.find]

@@ -10,6 +10,21 @@ pip install -e .
 ```
 
 ## Code generation 
+If you are just interested in running, code see **download precompiled files**. 
+If you want to write your own and compile it, see **generate code in local**. 
+
+<details>
+    <summary>download precompiled files</summary>
+
+You can pull files from google using gdown.
+```bash
+./script/setup.sh
+```
+
+</details>
+
+<details>
+    <summary>generate code in local</summary>
 
 ### Generate CasADi function 
 ```bash 
@@ -34,23 +49,8 @@ python3 cusadi/run_codegen.py --fn sparse_pdipm_multiple_iterations
 cp cusadi/build/sparse_pdipm_multiple_iterations.so cusadi/src/cusadi_functions/sparse_pdipm_multiple_iterations.so
 ```
 
-<!-- ## Simulation example 
-To debug codebase, you may use Genesis or IsaacLab. \
-As multi-platform is supported, we use genesis in this example. 
+</details>
 
-Install
-```bash
-git clone git@github.com:jnskkmhr/genesis_biped.git
-# check its README
-```
-
-Run 
-```bash 
-python3 run_linux.py # ubuntu
-python3 run.py # mac os
-```
-You should see GUI like the following. 
-<img src="media/gensis_hector.png"></image> -->
 
 ## WIP List
 
